@@ -3,6 +3,60 @@ $question = 'این یک پرسش نمونه است';
 $msg = 'این یک پاسخ نمونه است';
 $en_name = 'hafez';
 $fa_name = 'حافظ';
+$question = '';
+$question_label = '';
+
+$peoplejson = file_get_contents("people.json");
+$people_dictionary = json_decode($peoplejson, TRUE);
+
+$messages_file = fopen("messages.txt", "r");
+$messages = array();
+while (! feof($messages_file))
+{
+    $line = fgets($messages_file);
+    array_push($messages, $line);
+}
+fclose($messages_file);
+
+if ($_SERVER["REQUEST_METHOD"] == "POST")
+{
+    $question = $_POST["question"];
+    $question_label = 'پرسش:';
+
+    $en_name = $_POST["person"];
+    $fa_name = $people_dictionary["$en_name"];
+
+    $msg = $messages[hexdec(hash('adler32', $question.$en_name)) % count($messages)];
+    $firstChecker = "/^آیا/iu";
+    $questionmarkChecker = "/\?$/i";
+    $questionmarkChecker2 = "/?$/u";
+    if (!preg_match($firstChecker, $question))
+    {
+        $msg = "سوال درستی مطرح نشده است.";
+    }
+    if (!(preg_match($questionmarkChecker, $question) || preg_match($questionmarkChecker2, $question)))
+    {
+        $msg = "سوال درستی مطرح نشده است.";
+    }
+}
+else
+{
+    $question_label = '';
+    $msg = "سوال خود را بیرس";
+
+    $people_english_list = array_keys($people_dictionary);
+    $en_name = $people_english_list[array_rand($people_english_list)];
+    $fa_name = $people_dictionary["$en_name"];
+}
+
+// if ($question == '')
+// {
+    
+// }
+// else
+// {
+    
+// }
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -15,7 +69,7 @@ $fa_name = 'حافظ';
 <p id="copyright">تهیه شده برای درس کارگاه کامپیوتر،دانشکده کامییوتر، دانشگاه صنعتی شریف</p>
 <div id="wrapper">
     <div id="title">
-        <span id="label">پرسش:</span>
+        <span id="label"><?php echo $question_label ?></span>
         <span id="question"><?php echo $question ?></span>
     </div>
     <div id="container">
@@ -41,6 +95,17 @@ $fa_name = 'حافظ';
                  * enter data inside `option` tag.
                  * E.g., <option value="hafez">حافظ</option>
                  */
+                foreach ($people_dictionary as $key => $value)
+                {
+                    if ($key == $en_name)
+                    {
+                        echo "<option value='$key' selected>$value</option>\n";
+                    }
+                    else
+                    {
+                        echo "<option value='$key'>$value</option>\n";
+                    }
+                }
                 ?>
             </select>
             <input type="submit" value="بپرس"/>
