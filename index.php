@@ -29,7 +29,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST")
     $msg = $messages[hexdec(hash('adler32', $question.$en_name)) % count($messages)];
     $firstChecker = "/^آیا/iu";
     $questionmarkChecker = "/\?$/i";
-    $questionmarkChecker2 = "/?$/u";
+    $questionmarkChecker2 = "/؟$/u";
     if (!preg_match($firstChecker, $question))
     {
         $msg = "سوال درستی مطرح نشده است.";
